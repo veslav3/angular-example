@@ -4,10 +4,11 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Stack
 
-This project is configured with:
+Main technologies and tooling:
 
 - ❯ **Sass (SCSS)** — global and component styles use SCSS (`.scss`), including `inlineStyleLanguage: scss` and the default component schematic style.
 - ❯ **Angular SSR** — server-side rendering via the application builder’s server entry (`src/server.ts` / `src/main.server.ts`) and the `ssr` build options.
+- ❯ **[Vitest](https://vitest.dev/)** — unit tests run through the Angular CLI builder `@angular/build:unit-test` with Vitest in Node, using **jsdom** for DOM emulation (see Angular’s [Migrating from Karma to Vitest](https://angular.dev/guide/testing/migrating-to-vitest) guide). Spec files use `*.spec.ts` and `tsconfig.spec.json` includes `vitest/globals`.
 - ❯ **pnpm** — dependencies and scripts are managed with [pnpm](https://pnpm.io/). Enable [Corepack](https://nodejs.org/api/corepack.html) (`corepack enable`) or install pnpm globally if you do not have it yet.
 
 ## Getting started
@@ -54,11 +55,19 @@ This will compile your project and store the build artifacts in the `dist/` dire
 
 ## Running unit tests
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Tests use **Vitest** via `ng test` (`@angular/build:unit-test`). In a normal terminal, watch mode is on when supported; in CI, it stays off automatically.
 
 ```bash
 pnpm test
 ```
+
+To run a single non-watch pass (for example in scripts), use:
+
+```bash
+pnpm exec ng test --watch false
+```
+
+Background: [Migrating from Karma to Vitest](https://angular.dev/guide/testing/migrating-to-vitest) (Angular docs).
 
 ## Running end-to-end tests
 

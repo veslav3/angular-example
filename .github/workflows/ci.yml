@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-audit:
+    uses: ./.github/workflows/dependency-audit.yml
+
+  test-and-build:
+    needs: dependency-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Use `pnpm exec ng …` so CLI flags are not prefixed with an extra `--`
+      # (which breaks `ng test` / `ng build` schema validation under `pnpm run`).
+      - name: Run unit tests
+        run: pnpm exec ng test --watch false
+
+      - name: Production build
+        run: pnpm exec ng build --configuration production
