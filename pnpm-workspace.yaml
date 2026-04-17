@@ -1,0 +1,9 @@
+# Single-package “workspace” root so pnpm applies workspace-level settings here.
+packages:
+  - '.'
+
+# Only install versions published at least this many minutes ago (1440 = 24 hours).
+# This cools down dependency updates: many supply-chain compromises are caught and
+# unpublished shortly after release, so delaying installs slightly reduces the risk
+# of pulling a compromised tarball before the ecosystem reacts.
+minimumReleaseAge: 1440
