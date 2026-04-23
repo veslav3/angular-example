@@ -23,10 +23,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Version comes from package.json "packageManager" (do not set `version` here).
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,6 +40,14 @@ jobs:
       # (which breaks `ng test` / `ng build` schema validation under `pnpm run`).
       - name: Run unit tests
         run: pnpm exec ng test --watch false
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        run: pnpm test:e2e
+        env:
+          CI: true
 
       - name: Production build
         run: pnpm exec ng build --configuration production

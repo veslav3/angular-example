@@ -1,10 +1,18 @@
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideStore, withNgxsPendingTasks } from '@ngxs/store';
+
 import { App } from './app';
+import { JokesState } from './jokes/jokes.state';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        provideHttpClient(withFetch()),
+        provideStore([JokesState], withNgxsPendingTasks()),
+      ],
     }).compileComponents();
   });
 
@@ -18,6 +26,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, angular-example');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Chuck Norris jokes');
   });
 });

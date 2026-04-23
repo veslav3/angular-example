@@ -1,0 +1,71 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.jokes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jokes__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.jokes__fetch {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+.jokes__fetch:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.jokes__fetch:focus-visible {
+  outline: 2px solid color-mix(in srgb, CanvasText 50%, transparent);
+  outline-offset: 2px;
+}
+
+.jokes__error {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, #c00 10%, transparent);
+  color: CanvasText;
+}
+
+.jokes__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jokes__item {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+  background: color-mix(in srgb, CanvasText 4%, transparent);
+}
+
+.jokes__empty {
+  list-style: none;
+  margin: 0;
+  color: color-mix(in srgb, CanvasText 70%, transparent);
+  font-style: italic;
+}

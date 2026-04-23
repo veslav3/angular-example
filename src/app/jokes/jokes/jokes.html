@@ -1,0 +1,43 @@
+<section class="jokes" aria-label="Chuck Norris jokes">
+  <div class="jokes__toolbar">
+    <button
+      class="jokes__fetch"
+      data-testid="fetch-joke-button"
+      type="button"
+      [attr.aria-busy]="loading()"
+      [disabled]="loading()"
+      (click)="getNewJoke()"
+    >
+      @if (loading()) {
+        Loading…
+      } @else {
+        Get new joke
+      }
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <output class="jokes__error" data-testid="joke-error" aria-live="assertive">
+      {{ err }}
+    </output>
+  }
+
+  <div
+    class="jokes__list-wrap"
+    data-testid="joke-list"
+    aria-label="Jokes you have loaded"
+    aria-live="polite"
+  >
+    @if (jokes().length === 0) {
+      <p class="jokes__empty">No jokes yet. Press “Get new joke” to fetch one.</p>
+    } @else {
+      <div class="jokes__list" role="list">
+        @for (joke of jokes(); track joke.id) {
+          <div class="jokes__item" data-testid="joke-item" role="listitem">
+            <span [attr.data-joke-id]="joke.id">{{ joke.value }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

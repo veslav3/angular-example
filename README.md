@@ -2,6 +2,8 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
 
+**Live app (Vercel):** [https://angular-example-pi.vercel.app/](https://angular-example-pi.vercel.app/)
+
 ## Stack
 
 Main technologies and tooling:
@@ -71,13 +73,21 @@ Background: [Migrating from Karma to Vitest](https://angular.dev/guide/testing/m
 
 ## Running end-to-end tests
 
-For end-to-end (e2e) testing, run:
+End-to-end tests use [Playwright](https://playwright.dev/) and live under [`e2e/`](e2e/). The Chuck Norris feature is covered with **mocked** `https://api.chucknorris.io/jokes/random` responses (see `e2e/jokes.spec.ts`).
+
+Install browser binaries the first time (or in CI) with:
 
 ```bash
-pnpm ng e2e
+pnpm exec playwright install
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+In CI, use `pnpm exec playwright install --with-deps` so system dependencies for Chromium are present on Linux.
+
+Run the suite (starts the dev server automatically via `playwright.config.ts` unless one is already running locally):
+
+```bash
+pnpm test:e2e
+```
 
 ## Additional resources
 
