@@ -2,6 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideStore, withNgxsPendingTasks } from '@ngxs/store';
 
+import '../test/msw-setup';
 import { App } from './app';
 import { JokesState } from './jokes/jokes.state';
 

@@ -11,11 +11,12 @@ Main technologies and tooling:
 - ❯ **Sass (SCSS)** — global and component styles use SCSS (`.scss`), including `inlineStyleLanguage: scss` and the default component schematic style.
 - ❯ **Angular SSR** — server-side rendering via the application builder’s server entry (`src/server.ts` / `src/main.server.ts`) and the `ssr` build options.
 - ❯ **[Vitest](https://vitest.dev/)** — unit tests run through the Angular CLI builder `@angular/build:unit-test` with Vitest in Node, using **jsdom** for DOM emulation (see Angular’s [Migrating from Karma to Vitest](https://angular.dev/guide/testing/migrating-to-vitest) guide). Spec files use `*.spec.ts` and `tsconfig.spec.json` includes `vitest/globals`.
+- ❯ **[MSW](https://mswjs.io/) (Mock Service Worker)** — `https://api.chucknorris.io/jokes/random` is mocked in tests with a **pool of ten** deterministic jokes. **Unit** tests use `msw/node` (see `src/test/msw-setup.ts`, pulled in from [`src/app/app.spec.ts`](src/app/app.spec.ts)). **E2E** uses `msw/browser` by bootstrapping only when Playwright sets `window['__NG_MSW__'] = '1'` before the app runs (see `src/mocks/browser.ts` and `src/main.ts`); the worker file lives at `public/mockServiceWorker.js` (`npx msw init public` keeps it in sync).
 - ❯ **pnpm** — dependencies and scripts are managed with [pnpm](https://pnpm.io/). Enable [Corepack](https://nodejs.org/api/corepack.html) (`corepack enable`) or install pnpm globally if you do not have it yet.
 
 ## Getting started
 
-Install dependencies from the lockfile:
+Install dependencies:
 
 ```bash
 pnpm install
@@ -73,7 +74,7 @@ Background: [Migrating from Karma to Vitest](https://angular.dev/guide/testing/m
 
 ## Running end-to-end tests
 
-End-to-end tests use [Playwright](https://playwright.dev/) and live under [`e2e/`](e2e/). The Chuck Norris feature is covered with **mocked** `https://api.chucknorris.io/jokes/random` responses (see `e2e/jokes.spec.ts`).
+End-to-end tests use [Playwright](https://playwright.dev/) and live under [`e2e/`](e2e/). The same **MSW** flow as in unit tests is used: Playwright sets `__NG_MSW__` in the page before load so the app calls [`startMsw()`](src/mocks/browser.ts); handlers return jokes from the shared list in [`src/mocks/jokes-data.ts`](src/mocks/jokes-data.ts) (in **sequence** for predictable assertions), with an optional `x-e2e-slow-ms` header to simulate a slow first response. See `e2e/jokes.spec.ts` (tests run in **serial** so a single service worker is not contended in parallel).
 
 Install browser binaries the first time (or in CI) with:
 
@@ -88,6 +89,15 @@ Run the suite (starts the dev server automatically via `playwright.config.ts` un
 ```bash
 pnpm test:e2e
 ```
+
+**Visible browser and interactive UI (local only):**
+
+| Command | What it does |
+|--------|----------------|
+| `pnpm test:e2e:headed` | Runs tests with a **real browser window** ([`--headed`](https://playwright.dev/docs/test-use-options#options)). Default `test:e2e` is headless. |
+| `pnpm test:e2e:ui` | Opens Playwright’s [**Test UI mode**](https://playwright.dev/docs/test-ui-mode) (`--ui`): pick tests, watch, see steps, and use the **browser preview** / trace-style timeline while the app is driven. |
+
+With `ng serve` already on port 4200, Playwright will reuse it ([`reuseExistingServer`](https://playwright.dev/docs/test-webserver#configuring-a-web-server) in `playwright.config.ts` when not in CI), so you can start the app once and run `pnpm test:e2e:ui` in another terminal.
 
 ## Additional resources
 

@@ -8,6 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "serve:ssr:angular-example": "node dist/angular-example/server/server.mjs"
   },
   "private": true,
@@ -46,6 +48,11 @@
       "lmdb",
       "msgpackr-extract",
       "nice-napi"
+    ]
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
     ]
   }
 }

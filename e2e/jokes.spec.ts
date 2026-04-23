@@ -1,89 +1,62 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const jokeA = {
-  icon_url: 'https://api.chucknorris.io/img/avatar/chuck-norris.png',
-  id: 'e2e-joke-a',
-  url: '',
-  value: 'E2E mocked joke A — roundhouse for testing.',
-} as const;
+import { MOCK_JOKES } from '../src/mocks/jokes-data';
 
-const jokeB = {
-  icon_url: 'https://api.chucknorris.io/img/avatar/chuck-norris.png',
-  id: 'e2e-joke-b',
-  url: '',
-  value: 'E2E mocked joke B — the sequel.',
-} as const;
-
-async function mockJokesApi(page: Page) {
-  await page.route('**/jokes/random**', (route) => {
-    return route.fulfill({
-      body: JSON.stringify(jokeA),
-      contentType: 'application/json',
-      status: 200,
-    });
-  });
+function waitForMswResetRef(page: Page) {
+  return page.waitForFunction(
+    () => typeof (window as { __E2E_RESET_MSW?: () => void }).__E2E_RESET_MSW === 'function',
+    { timeout: 15_000 }
+  );
 }
 
-test('first fetch appends one joke to the list', async ({ page }) => {
-  await mockJokesApi(page);
-  await page.goto('/');
+test.describe('Chuck jokes (MSW pool of 10 jokes)', () => {
+  test.describe.configure({ mode: 'serial' });
 
-  await page.getByTestId('fetch-joke-button').click();
-  const items = page.getByTestId('joke-item');
-  await expect(items).toHaveCount(1);
-  await expect(items.first()).toContainText(jokeA.value);
-});
-
-test('second fetch appends another joke in order', async ({ page }) => {
-  let call = 0;
-  await page.route('**/jokes/random**', (route) => {
-    call += 1;
-    const body = call === 1 ? jokeA : jokeB;
-    return route.fulfill({
-      body: JSON.stringify(body),
-      contentType: 'application/json',
-      status: 200,
-    });
+  test.beforeEach(async ({ page }) => {
+    // Must be a self-contained string so the flag exists before the app bundle runs and starts MSW.
+    await page.addInitScript("window['__NG_MSW__'] = '1'");
+    await page.context().setExtraHTTPHeaders({}); // start clean (loading test can override)
   });
 
-  await page.goto('/');
-  await page.getByTestId('fetch-joke-button').click();
-  await expect(page.getByTestId('joke-item')).toHaveCount(1);
-  await page.getByTestId('fetch-joke-button').click();
-
-  const items = page.getByTestId('joke-item');
-  await expect(items).toHaveCount(2);
-  await expect(items.nth(0)).toContainText(jokeA.value);
-  await expect(items.nth(1)).toContainText(jokeB.value);
-});
-
-test('button shows loading and avoids double submit', async ({ page }) => {
-  let resolveRequest!: (value: void) => void;
-  const firstResponse = new Promise<void>((r) => {
-    resolveRequest = r;
+  test.afterEach(async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({});
   });
 
-  await page.route('**/jokes/random**', async (route) => {
-    await firstResponse;
-    await route.fulfill({
-      body: JSON.stringify(jokeA),
-      contentType: 'application/json',
-      status: 200,
-    });
+  test('first fetch appends one joke from the mock pool', async ({ page }) => {
+    await page.goto('/');
+    await waitForMswResetRef(page);
+    await page.evaluate(() => window.__E2E_RESET_MSW?.());
+    await page.getByTestId('fetch-joke-button').click();
+    const items = page.getByTestId('joke-item');
+    await expect(items).toHaveCount(1);
+    await expect(items.first()).toContainText(MOCK_JOKES[0].value);
   });
 
-  await page.goto('/');
-  const button = page.getByTestId('fetch-joke-button');
-  await expect(button).toBeEnabled();
-
-  await button.click();
-  await expect(button).toBeDisabled();
-  await expect(button).toHaveAttribute('aria-busy', 'true');
-  await expect(page.getByTestId('joke-list')).toContainText('No jokes yet', {
-    timeout: 2_000,
+  test('second fetch appends the next joke in sequence', async ({ page }) => {
+    await page.goto('/');
+    await waitForMswResetRef(page);
+    await page.evaluate(() => window.__E2E_RESET_MSW?.());
+    await page.getByTestId('fetch-joke-button').click();
+    await expect(page.getByTestId('joke-item')).toHaveCount(1);
+    await page.getByTestId('fetch-joke-button').click();
+    const items = page.getByTestId('joke-item');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(0)).toContainText(MOCK_JOKES[0].value);
+    await expect(items.nth(1)).toContainText(MOCK_JOKES[1].value);
   });
 
-  resolveRequest();
-  await expect(button).toBeEnabled();
-  await expect(page.getByTestId('joke-item')).toHaveCount(1);
+  test('button is disabled and busy while a slow mocked response is in flight', async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({ 'x-e2e-slow-ms': '1200' });
+    await page.goto('/');
+    await waitForMswResetRef(page);
+    await page.evaluate(() => window.__E2E_RESET_MSW?.());
+    const button = page.getByTestId('fetch-joke-button');
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(button).toBeDisabled();
+    await expect(button).toHaveAttribute('aria-busy', 'true');
+    await expect(page.getByTestId('joke-list')).toContainText('No jokes yet', { timeout: 1_000 });
+    await expect(button).toBeEnabled();
+    await expect(page.getByTestId('joke-item')).toHaveCount(1);
+  });
 });
