@@ -20,6 +20,9 @@ export function chuckRandomJokeUrl(nonce: string): string {
 /** Max jokes shown; oldest in list order is dropped when a new one arrives (API has no created_at). */
 export const MAX_VISIBLE_JOKES = 10;
 
+/** Max distinct jokes stored as favorites (requirement). */
+export const MAX_FAVORITE_JOKES = 10;
+
 /** Number of jokes to load in parallel on first paint (see `FetchInitialJokes`). */
 export const INITIAL_JOKES_COUNT = MAX_VISIBLE_JOKES;
 

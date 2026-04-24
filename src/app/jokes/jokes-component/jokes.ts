@@ -16,7 +16,7 @@ import { JokesState } from '../jokes.state';
 export class Jokes implements OnInit {
   private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly favoriteJokes = inject(FavoriteJokesService);
+  protected readonly favoriteJokes = inject(FavoriteJokesService);
   private timerSub: Subscription | null = null;
 
   protected readonly error = this.store.selectSignal(JokesState.getError);
@@ -24,6 +24,7 @@ export class Jokes implements OnInit {
   protected readonly jokes = this.store.selectSignal(JokesState.getJokes);
   protected readonly timerOn = signal(false);
   protected readonly favoriteIdSet = this.favoriteJokes.favoriteIdSet;
+  protected readonly atFavoriteLimit = this.favoriteJokes.atFavoriteLimit;
 
   constructor() {
     this.destroyRef.onDestroy(() => this.stopTimer());

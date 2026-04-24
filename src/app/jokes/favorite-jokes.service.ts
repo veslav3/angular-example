@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 
-import { type ChuckJoke } from './jokes.model';
+import { MAX_FAVORITE_JOKES, type ChuckJoke } from './jokes.model';
 
 const STORAGE_KEY = 'angular-example.chuck-favorites';
 
@@ -30,6 +30,8 @@ export class FavoriteJokesService {
 
   readonly favoriteIdSet = computed(() => new Set(this._favorites().map((j) => j.id)));
 
+  readonly atFavoriteLimit = computed(() => this._favorites().length >= MAX_FAVORITE_JOKES);
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this._favorites.set(this.readStorage());
@@ -41,6 +43,9 @@ export class FavoriteJokesService {
     this._favorites.update((list) => {
       const i = list.findIndex((j) => j.id === id);
       if (i === -1) {
+        if (list.length >= MAX_FAVORITE_JOKES) {
+          return list;
+        }
         return [...list, joke];
       }
       return list.filter((_, idx) => idx !== i);
@@ -55,7 +60,22 @@ export class FavoriteJokesService {
         return [];
       }
       const parsed: unknown = JSON.parse(raw);
-      return isChuckJokeArray(parsed) ? parsed : [];
+      if (!isChuckJokeArray(parsed)) {
+        return [];
+      }
+      const unique: ChuckJoke[] = [];
+      const seen = new Set<string>();
+      for (const j of parsed) {
+        if (seen.has(j.id)) {
+          continue;
+        }
+        seen.add(j.id);
+        unique.push(j);
+        if (unique.length >= MAX_FAVORITE_JOKES) {
+          break;
+        }
+      }
+      return unique;
     } catch {
       return [];
     }

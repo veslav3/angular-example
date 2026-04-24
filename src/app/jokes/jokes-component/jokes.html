@@ -61,9 +61,14 @@
               class="jokes__favorite"
               type="button"
               data-testid="favorite-toggle"
+              [disabled]="atFavoriteLimit() && !favoriteIdSet().has(joke.id)"
               [attr.aria-pressed]="favoriteIdSet().has(joke.id)"
               [attr.aria-label]="
-                favoriteIdSet().has(joke.id) ? 'Remove from favorites: ' + joke.value : 'Add to favorites: ' + joke.value
+                favoriteIdSet().has(joke.id)
+                  ? 'Remove from favorites: ' + joke.value
+                  : atFavoriteLimit()
+                    ? 'Maximum of ten favorites reached. Remove one on the Favorites page to add another.'
+                  : 'Add to favorites: ' + joke.value
               "
               (click)="toggleFavorite(joke, $event)"
             >

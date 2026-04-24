@@ -95,6 +95,11 @@
   outline-offset: 2px;
 }
 
+.jokes__favorite:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .jokes__empty {
   list-style: none;
   margin: 0;
