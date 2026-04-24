@@ -6,11 +6,18 @@ import { catchError, finalize, forkJoin, of, tap } from 'rxjs';
 
 import { FetchInitialJokes, FetchRandomJoke } from './jokes.actions';
 import {
-  CHUCK_NORRIS_JOKES_RANDOM,
+  chuckRandomJokeUrl,
   INITIAL_JOKES_COUNT,
+  MAX_VISIBLE_JOKES,
   type ChuckJoke,
   type JokesStateModel,
 } from './jokes.model';
+
+/** Newest at end; drop from the front when over the cap (FIFO, not API timestamps). */
+function appendFifoCapped(jokes: ChuckJoke[], joke: ChuckJoke, max: number): ChuckJoke[] {
+  const next = [...jokes, joke];
+  return next.length > max ? next.slice(-max) : next;
+}
 
 const DEFAULTS: JokesStateModel = {
   error: null,
@@ -30,21 +37,18 @@ export class JokesState {
   fetchInitialJokes(ctx: StateContext<JokesStateModel>) {
     ctx.patchState({ error: null, loading: true, jokes: [] });
 
-    const requests = Array.from({ length: INITIAL_JOKES_COUNT }, () =>
-      this.http.get<ChuckJoke>(CHUCK_NORRIS_JOKES_RANDOM)
+    // Exactly one `GET` per initial slot (parallel). Each URL must differ or HTTP cache
+    // can return a single joke for every parallel request.
+    const requests = Array.from({ length: INITIAL_JOKES_COUNT }, (_, i) =>
+      this.http.get<ChuckJoke>(chuckRandomJokeUrl(`${globalThis.crypto?.randomUUID?.() ?? i}-${i}`))
     );
 
     return forkJoin(requests).pipe(
       tap((batch) => {
-        const seen = new Set<string>();
-        const jokes = batch.filter((joke) => {
-          if (seen.has(joke.id)) {
-            return false;
-          }
-          seen.add(joke.id);
-          return true;
+        ctx.patchState({
+          error: null,
+          jokes: batch.slice(0, MAX_VISIBLE_JOKES),
         });
-        ctx.patchState({ error: null, jokes });
       }),
       catchError(() => {
         ctx.patchState({ error: 'Could not load jokes. Try reloading the page.' });
@@ -57,16 +61,23 @@ export class JokesState {
   }
 
   @Action(FetchRandomJoke)
-  fetchRandomJoke(ctx: StateContext<JokesStateModel>) {
-    ctx.patchState({ error: null, loading: true });
+  fetchRandomJoke(ctx: StateContext<JokesStateModel>, action: FetchRandomJoke) {
+    const silent = action.silent;
+    ctx.patchState({ error: null, ...(silent ? {} : { loading: true }) });
 
-    return this.http.get<ChuckJoke>(CHUCK_NORRIS_JOKES_RANDOM).pipe(
+    return this.http
+      .get<ChuckJoke>(
+        chuckRandomJokeUrl(
+          globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+        )
+      )
+      .pipe(
       tap((joke) => {
         const { jokes } = ctx.getState();
         ctx.setState(
           patch({
             error: null,
-            jokes: [...jokes, joke],
+            jokes: appendFifoCapped(jokes, joke, MAX_VISIBLE_JOKES),
           })
         );
       }),
@@ -75,7 +86,9 @@ export class JokesState {
         return of(undefined);
       }),
       finalize(() => {
-        ctx.patchState({ loading: false });
+        if (!silent) {
+          ctx.patchState({ loading: false });
+        }
       })
     );
   }

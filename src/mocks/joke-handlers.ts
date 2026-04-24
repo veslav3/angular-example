@@ -1,8 +1,15 @@
 import { http, HttpResponse } from 'msw';
 
-import { CHUCK_NORRIS_JOKES_RANDOM } from '../app/jokes/jokes.model';
-
 import { MOCK_JOKES } from './jokes-data';
+
+function isChuckRandomJokeRequest({ request }: { request: Request }): boolean {
+  try {
+    const u = new URL(request.url);
+    return u.hostname === 'api.chucknorris.io' && u.pathname === '/jokes/random';
+  } catch {
+    return false;
+  }
+}
 
 const SLOW_HEADER = 'x-e2e-slow-ms';
 
@@ -25,7 +32,7 @@ export function createJokeMockHandlers() {
   let queue = Promise.resolve();
 
   return [
-    http.get(CHUCK_NORRIS_JOKES_RANDOM, ({ request }) => {
+    http.get(isChuckRandomJokeRequest, ({ request }) => {
       const run = queue.then(async () => {
         const slowMs = parseSlowMs(request);
         if (slowMs > 0) {

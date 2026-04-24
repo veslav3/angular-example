@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
+import { interval, Subscription } from 'rxjs';
 
 import { FetchInitialJokes, FetchRandomJoke } from '../jokes.actions';
+import { JOKE_TIMER_INTERVAL_MS } from '../jokes.model';
 import { JokesState } from '../jokes.state';
 
 @Component({
@@ -12,10 +14,17 @@ import { JokesState } from '../jokes.state';
 })
 export class Jokes implements OnInit {
   private readonly store = inject(Store);
+  private readonly destroyRef = inject(DestroyRef);
+  private timerSub: Subscription | null = null;
 
   protected readonly error = this.store.selectSignal(JokesState.getError);
   protected readonly loading = this.store.selectSignal(JokesState.isLoading);
   protected readonly jokes = this.store.selectSignal(JokesState.getJokes);
+  protected readonly timerOn = signal(false);
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.stopTimer());
+  }
 
   ngOnInit(): void {
     this.store.dispatch(new FetchInitialJokes());
@@ -23,5 +32,22 @@ export class Jokes implements OnInit {
 
   protected getNewJoke() {
     this.store.dispatch(new FetchRandomJoke());
+  }
+
+  protected toggleTimer(): void {
+    if (this.timerSub) {
+      this.stopTimer();
+      return;
+    }
+    this.timerOn.set(true);
+    this.timerSub = interval(JOKE_TIMER_INTERVAL_MS).subscribe(() => {
+      this.store.dispatch(new FetchRandomJoke(true));
+    });
+  }
+
+  private stopTimer(): void {
+    this.timerSub?.unsubscribe();
+    this.timerSub = null;
+    this.timerOn.set(false);
   }
 }

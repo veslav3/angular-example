@@ -32,19 +32,20 @@ test.describe('Chuck jokes (MSW pool of 10 jokes)', () => {
     await expect(items.nth(9)).toContainText(MOCK_JOKES[9].value);
   });
 
-  test('each click appends the next joke from the mock pool', async ({ page }) => {
+  test('each click replaces oldest joke when list is full (FIFO, max 10)', async ({ page }) => {
     await page.goto('/');
     await waitForMswResetRef(page);
     await page.evaluate(() => window.__E2E_RESET_MSW?.());
-    await expect(page.getByTestId('joke-item')).toHaveCount(10);
-    await page.getByTestId('fetch-joke-button').click();
     const items = page.getByTestId('joke-item');
-    await expect(items).toHaveCount(11);
-    await expect(items.nth(9)).toContainText(MOCK_JOKES[9].value);
-    await expect(items.nth(10)).toContainText(MOCK_JOKES[0].value);
+    await expect(items).toHaveCount(10);
     await page.getByTestId('fetch-joke-button').click();
-    await expect(items).toHaveCount(12);
-    await expect(items.nth(11)).toContainText(MOCK_JOKES[1].value);
+    await expect(items).toHaveCount(10);
+    await expect(items.first()).toContainText(MOCK_JOKES[1].value);
+    await expect(items.nth(9)).toContainText(MOCK_JOKES[0].value);
+    await page.getByTestId('fetch-joke-button').click();
+    await expect(items).toHaveCount(10);
+    await expect(items.first()).toContainText(MOCK_JOKES[2].value);
+    await expect(items.nth(9)).toContainText(MOCK_JOKES[1].value);
   });
 
   test('button is disabled and busy while a slow mocked response is in flight', async ({ page }) => {
@@ -60,6 +61,6 @@ test.describe('Chuck jokes (MSW pool of 10 jokes)', () => {
     await expect(button).toHaveAttribute('aria-busy', 'true');
     await expect(page.getByTestId('joke-list')).not.toContainText('No jokes yet', { timeout: 1_000 });
     await expect(button).toBeEnabled({ timeout: 15_000 });
-    await expect(page.getByTestId('joke-item')).toHaveCount(11);
+    await expect(page.getByTestId('joke-item')).toHaveCount(10);
   });
 });

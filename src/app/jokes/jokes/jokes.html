@@ -14,6 +14,24 @@
         Get new joke
       }
     </button>
+    <button
+      class="jokes__fetch jokes__timer"
+      data-testid="timer-toggle-button"
+      type="button"
+      [attr.aria-pressed]="timerOn()"
+      [attr.aria-label]="
+        timerOn()
+          ? 'Timer aan: elke vijf seconden wordt de oudste grap vervangen. Klik om te stoppen.'
+          : 'Timer uit. Klik om elke vijf seconden automatisch een nieuwe grap toe te voegen (maximaal tien).'
+      "
+      (click)="toggleTimer()"
+    >
+      @if (timerOn()) {
+        Timer uit
+      } @else {
+        Timer aan
+      }
+    </button>
   </div>
 
   @if (error(); as err) {
@@ -36,7 +54,7 @@
       }
     } @else {
       <div class="jokes__list" role="list">
-        @for (joke of jokes(); track joke.id) {
+        @for (joke of jokes(); track $index) {
           <div class="jokes__item" data-testid="joke-item" role="listitem">
             <span [attr.data-joke-id]="joke.id">{{ joke.value }}</span>
           </div>
