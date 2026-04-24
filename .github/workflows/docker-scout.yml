@@ -1,0 +1,48 @@
+# Build the image and run Docker Scout (quickview + base-image recommendations).
+# Install Docker Desktop (or Docker Engine) with the `docker scout` plugin, or run this workflow in CI.
+# For full recommendations and CVE data, run `docker login` locally (or add docker/login-action with DOCKERHUB_* secrets for private forks).
+# See https://docs.docker.com/scout/
+name: Docker Scout
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - package.json
+      - pnpm-lock.yaml
+  pull_request:
+    paths:
+      - Dockerfile
+      - package.json
+      - pnpm-lock.yaml
+
+concurrency:
+  group: docker-scout-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        run: docker build -t angular-example:ci .
+
+      - name: Docker Scout
+        continue-on-error: true
+        uses: docker/scout-action@v1
+        with:
+          command: quickview,recommendations
+          image: local://angular-example:ci
+          summary: true

@@ -8,6 +8,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 Main technologies and tooling:
 
+- ❯ **Node.js 22** — use **22.x** for local dev, [CI](.github/workflows/ci.yml), the [Dockerfile](Dockerfile) base, [`.nvmrc`](.nvmrc), and `package.json` `engines` (set `engine-strict=true` in an `.npmrc` if you want pnpm to enforce it).
 - ❯ **Sass (SCSS)** — global and component styles use SCSS (`.scss`), including `inlineStyleLanguage: scss` and the default component schematic style.
 - ❯ **Angular SSR** — server-side rendering via the application builder’s server entry (`src/server.ts` / `src/main.server.ts`) and the `ssr` build options.
 - ❯ **[Vitest](https://vitest.dev/)** — unit tests run through the Angular CLI builder `@angular/build:unit-test` with Vitest in Node, using **jsdom** for DOM emulation (see Angular’s [Migrating from Karma to Vitest](https://angular.dev/guide/testing/migrating-to-vitest) guide). Spec files use `*.spec.ts` and `tsconfig.spec.json` includes `vitest/globals`.
@@ -15,6 +16,8 @@ Main technologies and tooling:
 - ❯ **pnpm** — dependencies and scripts are managed with [pnpm](https://pnpm.io/). Enable [Corepack](https://nodejs.org/api/corepack.html) (`corepack enable`) or install pnpm globally if you do not have it yet.
 
 ## Getting started
+
+Use **Node 22** (see [`.nvmrc`](.nvmrc); with [nvm](https://github.com/nvm-sh/nvm): `nvm use`).
 
 Install dependencies:
 
@@ -98,6 +101,48 @@ pnpm test:e2e
 | `pnpm test:e2e:ui` | Opens Playwright’s [**Test UI mode**](https://playwright.dev/docs/test-ui-mode) (`--ui`): pick tests, watch, see steps, and use the **browser preview** / trace-style timeline while the app is driven. |
 
 With `ng serve` already on port 4200, Playwright will reuse it ([`reuseExistingServer`](https://playwright.dev/docs/test-webserver#configuring-a-web-server) in `playwright.config.ts` when not in CI), so you can start the app once and run `pnpm test:e2e:ui` in another terminal.
+
+## Docker
+
+The [Dockerfile](Dockerfile) builds a production **SSR** image (Node server + prerendered assets from `ng build`, same entry as `pnpm serve:ssr:angular-example`). The server reads **`PORT`** (default **4000**; see `src/server.ts`).
+
+| Command | What it does |
+|--------|----------------|
+| `pnpm docker:build` | `docker build -t angular-example:local .` |
+| `pnpm docker:run` | Run the image and map [http://localhost:4000](http://localhost:4000) to the app |
+| `docker compose up --build` | Build and start using [docker-compose.yml](docker-compose.yml) (optional `PORT` env, default `4000` → `4000`) |
+
+Examples:
+
+```bash
+pnpm docker:build
+pnpm docker:run
+```
+
+Or with [Compose](https://docs.docker.com/compose/):
+
+```bash
+docker compose up --build
+```
+
+**Deploying** on any host that runs containers: build and push the image, then `docker run -p 4000:4000 -e PORT=4000` (or the port your platform injects for `PORT`). The container runs as user `node`.
+
+### Docker Scout (image analysis and base-image recommendations)
+
+[Docker Scout](https://docs.docker.com/scout/) (the `docker scout` CLI, also distributed as the [`docker/scout-cli` image](https://hub.docker.com/r/docker/scout-cli)) can analyze the built image: vulnerabilities, size, and **recommendations** to refresh or update the base image (e.g. `node:22-alpine`).
+
+**Local** (Desktop 4.17+ includes the plugin, or [install the CLI](https://docs.docker.com/scout/install/)):
+
+| Command | What it does |
+|--------|----------------|
+| `pnpm docker:build` | Build the image tagged `angular-example:local` (required first). |
+| `pnpm docker:scout:quickview` | [`docker scout quickview`](https://docs.docker.com/scout/quickview) on `local://angular-example:local` — fast summary. |
+| `pnpm docker:scout:recommendations` | [`docker scout recommendations`](https://docs.docker.com/scout/recommendations) — suggested base image updates and benefits (size, CVEs). |
+| `pnpm docker:scout` | Build, then quickview, then recommendations. |
+
+**CI**: [`.github/workflows/docker-scout.yml`](.github/workflows/docker-scout.yml) builds the image and runs [`docker/scout-action`](https://github.com/docker/scout-action) (`quickview` + `recommendations`) on `main` / `workflow_dispatch` / PRs that touch the Docker-related paths. It uses `continue-on-error` so a missing Hub login does not block the run; for the richest [recommendation](https://docs.docker.com/scout/recommendations) output, sign in to Docker Hub locally or add a `docker/login-action` step with `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` in that workflow.
+
+The [Dockerfile](Dockerfile) uses [BuildKit cache mounts](https://docs.docker.com/build/cache/optimize/) for the pnpm store to speed up repeat `docker build` steps.
 
 ## Additional resources
 

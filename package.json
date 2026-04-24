@@ -10,10 +10,18 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
-    "serve:ssr:angular-example": "node dist/angular-example/server/server.mjs"
+    "serve:ssr:angular-example": "node dist/angular-example/server/server.mjs",
+    "docker:build": "docker build -t angular-example:local .",
+    "docker:run": "docker run --rm -p 4000:4000 -e PORT=4000 angular-example:local",
+    "docker:scout:quickview": "docker scout quickview local://angular-example:local",
+    "docker:scout:recommendations": "docker scout recommendations local://angular-example:local",
+    "docker:scout": "pnpm run docker:build && pnpm run docker:scout:quickview && pnpm run docker:scout:recommendations"
   },
   "private": true,
   "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": "^22.0.0"
+  },
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
@@ -34,7 +42,7 @@
     "@angular/compiler-cli": "^21.2.0",
     "@playwright/test": "^1.59.1",
     "@types/express": "^5.0.1",
-    "@types/node": "^20.17.19",
+    "@types/node": "^22.15.0",
     "jsdom": "^28.0.0",
     "msw": "^2.13.4",
     "prettier": "^3.8.1",

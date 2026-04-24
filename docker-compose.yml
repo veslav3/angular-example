@@ -1,0 +1,10 @@
+# Local run:  docker compose up --build
+# App listens on port 4000 (see src/server.ts). Override: PORT=8080 docker compose up
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      - PORT=4000
+    restart: unless-stopped
