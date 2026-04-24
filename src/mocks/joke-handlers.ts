@@ -21,16 +21,25 @@ function parseSlowMs(request: Request): number {
  */
 export function createJokeMockHandlers() {
   let callIndex = 0;
+  /** Serialize mock index so parallel /jokes/random requests stay deterministic. */
+  let queue = Promise.resolve();
 
   return [
-    http.get(CHUCK_NORRIS_JOKES_RANDOM, async ({ request }) => {
-      const slowMs = parseSlowMs(request);
-      if (slowMs > 0) {
-        await new Promise((r) => setTimeout(r, slowMs));
-      }
-      const joke = MOCK_JOKES[callIndex % MOCK_JOKES.length];
-      callIndex += 1;
-      return HttpResponse.json({ ...joke });
+    http.get(CHUCK_NORRIS_JOKES_RANDOM, ({ request }) => {
+      const run = queue.then(async () => {
+        const slowMs = parseSlowMs(request);
+        if (slowMs > 0) {
+          await new Promise((r) => setTimeout(r, slowMs));
+        }
+        const joke = MOCK_JOKES[callIndex % MOCK_JOKES.length];
+        callIndex += 1;
+        return HttpResponse.json({ ...joke });
+      });
+      queue = run.then(
+        () => undefined,
+        () => undefined
+      );
+      return run;
     }),
   ];
 }

@@ -11,15 +11,14 @@
   </div>
   <h1 class="app__title">Chuck Norris jokes</h1>
   <p class="app__intro">
-    Each click loads a random fact from
+    On load, ten random facts are fetched in parallel from
     <a
       class="app__link"
       href="https://api.chucknorris.io/"
       rel="noopener noreferrer"
       target="_blank"
       >api.chucknorris.io</a
-    >
-    and appends it to the list.
+    >. Each click appends another to the list.
   </p>
   <app-jokes />
 </main>

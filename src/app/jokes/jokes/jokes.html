@@ -29,7 +29,11 @@
     aria-live="polite"
   >
     @if (jokes().length === 0) {
-      <p class="jokes__empty">No jokes yet. Press “Get new joke” to fetch one.</p>
+      @if (loading()) {
+        <p class="jokes__empty" data-testid="jokes-loading">Loading jokes…</p>
+      } @else {
+        <p class="jokes__empty">No jokes yet. Press “Get new joke” to fetch one.</p>
+      }
     } @else {
       <div class="jokes__list" role="list">
         @for (joke of jokes(); track joke.id) {
