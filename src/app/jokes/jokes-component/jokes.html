@@ -56,7 +56,19 @@
       <div class="jokes__list" role="list">
         @for (joke of jokes(); track $index) {
           <div class="jokes__item" data-testid="joke-item" role="listitem">
-            <span [attr.data-joke-id]="joke.id">{{ joke.value }}</span>
+            <p class="jokes__item-text">{{ joke.value }}</p>
+            <button
+              class="jokes__favorite"
+              type="button"
+              data-testid="favorite-toggle"
+              [attr.aria-pressed]="favoriteIdSet().has(joke.id)"
+              [attr.aria-label]="
+                favoriteIdSet().has(joke.id) ? 'Remove from favorites: ' + joke.value : 'Add to favorites: ' + joke.value
+              "
+              (click)="toggleFavorite(joke, $event)"
+            >
+              {{ favoriteIdSet().has(joke.id) ? '★' : '☆' }}
+            </button>
           </div>
         }
       </div>

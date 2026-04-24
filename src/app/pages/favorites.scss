@@ -1,0 +1,67 @@
+@use '../styles/page-typography';
+
+.favorites {
+  max-width: 50rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.favorites__crumb {
+  margin: 0;
+}
+
+.favorites__back {
+  font: inherit;
+}
+
+.favorites__empty {
+  margin: 0;
+  color: color-mix(in srgb, CanvasText 70%, transparent);
+  font-style: italic;
+}
+
+.favorites__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.favorites__item {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+  background: color-mix(in srgb, CanvasText 4%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.favorites__text {
+  margin: 0;
+  flex: 1 1 12rem;
+  line-height: 1.45;
+}
+
+.favorites__remove {
+  font: inherit;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.375rem;
+  border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.favorites__remove:focus-visible {
+  outline: 2px solid color-mix(in srgb, CanvasText 50%, transparent);
+  outline-offset: 2px;
+}

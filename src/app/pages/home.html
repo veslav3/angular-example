@@ -1,0 +1,27 @@
+<main class="app">
+  <div class="app__hero">
+    <div class="app__brand">
+      <img
+        class="app__logo"
+        ngSrc="/images/chucknorris-logo.png"
+        width="360"
+        height="219"
+        priority
+        alt="chucknorris.io logo, Chuck Norris brand artwork"
+      />
+    </div>
+    <h1 class="app__title">Chuck Norris jokes</h1>
+    <p class="app__intro">
+      On load, ten random facts are fetched in parallel from
+      <a
+        class="app__link"
+        href="https://api.chucknorris.io/"
+        rel="noopener noreferrer"
+        target="_blank"
+        >api.chucknorris.io</a
+      >. The list shows at most ten: the oldest entry is removed when a new one arrives (order in the list, not API dates). Use the timer for an extra joke every five seconds. Mark jokes as favorites to collect them on the
+      <a class="app__link" routerLink="/favorites">Favorites</a> page.
+    </p>
+  </div>
+  <app-jokes />
+</main>

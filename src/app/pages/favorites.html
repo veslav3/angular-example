@@ -1,0 +1,28 @@
+<main class="favorites">
+  <nav class="favorites__crumb" aria-label="Breadcrumb">
+    <a class="favorites__back app__link" routerLink="/">← Back to jokes</a>
+  </nav>
+  <h1 class="app__title">Favorite jokes</h1>
+  <p class="app__intro">These are saved in your browser (localStorage) on this device.</p>
+
+  @if (favorites().length === 0) {
+    <p class="favorites__empty" data-testid="favorites-empty">No favorites yet. Add some from the main jokes page.</p>
+  } @else {
+    <ul class="favorites__list" data-testid="favorites-list" aria-label="Favorite jokes">
+      @for (joke of favorites(); track joke.id) {
+        <li class="favorites__item" data-testid="favorites-list-item">
+          <p class="favorites__text">{{ joke.value }}</p>
+          <button
+            class="favorites__remove"
+            type="button"
+            [attr.aria-label]="'Remove from favorites: ' + joke.value"
+            data-testid="favorites-remove"
+            (click)="toggleFavorite(joke)"
+          >
+            Remove
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</main>

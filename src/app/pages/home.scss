@@ -1,0 +1,28 @@
+@use '../styles/page-typography';
+
+.app {
+  max-width: 50rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.app__hero {
+  align-self: center;
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.app__brand {
+  max-width: min(100%, 360px);
+}
+
+.app__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}

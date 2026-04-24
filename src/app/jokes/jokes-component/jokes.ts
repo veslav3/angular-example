@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal 
 import { Store } from '@ngxs/store';
 import { interval, Subscription } from 'rxjs';
 
+import { FavoriteJokesService } from '../favorite-jokes.service';
 import { FetchInitialJokes, FetchRandomJoke } from '../jokes.actions';
-import { JOKE_TIMER_INTERVAL_MS } from '../jokes.model';
+import { type ChuckJoke, JOKE_TIMER_INTERVAL_MS } from '../jokes.model';
 import { JokesState } from '../jokes.state';
 
 @Component({
@@ -15,12 +16,14 @@ import { JokesState } from '../jokes.state';
 export class Jokes implements OnInit {
   private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly favoriteJokes = inject(FavoriteJokesService);
   private timerSub: Subscription | null = null;
 
   protected readonly error = this.store.selectSignal(JokesState.getError);
   protected readonly loading = this.store.selectSignal(JokesState.isLoading);
   protected readonly jokes = this.store.selectSignal(JokesState.getJokes);
   protected readonly timerOn = signal(false);
+  protected readonly favoriteIdSet = this.favoriteJokes.favoriteIdSet;
 
   constructor() {
     this.destroyRef.onDestroy(() => this.stopTimer());
@@ -32,6 +35,11 @@ export class Jokes implements OnInit {
 
   protected getNewJoke() {
     this.store.dispatch(new FetchRandomJoke());
+  }
+
+  protected toggleFavorite(joke: ChuckJoke, event: Event): void {
+    event.stopPropagation();
+    this.favoriteJokes.toggleFavorite(joke);
   }
 
   protected toggleTimer(): void {
