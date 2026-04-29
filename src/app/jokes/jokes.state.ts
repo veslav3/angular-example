@@ -2,9 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { patch } from '@ngxs/store/operators';
-import { catchError, finalize, forkJoin, of, tap } from 'rxjs';
+import { catchError, finalize, of, tap } from 'rxjs';
 
 import { FetchInitialJokes, FetchRandomJoke } from './jokes.actions';
+import { JokesService } from './jokes.service';
 import {
   chuckRandomJokeUrl,
   INITIAL_JOKES_COUNT,
@@ -32,18 +33,13 @@ const DEFAULTS: JokesStateModel = {
 @Injectable()
 export class JokesState {
   private readonly http = inject(HttpClient);
+  private readonly jokesService = inject(JokesService);
 
   @Action(FetchInitialJokes)
   fetchInitialJokes(ctx: StateContext<JokesStateModel>) {
     ctx.patchState({ error: null, loading: true, jokes: [] });
 
-    // Exactly one `GET` per initial slot (parallel). Each URL must differ or HTTP cache
-    // can return a single joke for every parallel request.
-    const requests = Array.from({ length: INITIAL_JOKES_COUNT }, (_, i) =>
-      this.http.get<ChuckJoke>(chuckRandomJokeUrl(`${globalThis.crypto?.randomUUID?.() ?? i}-${i}`))
-    );
-
-    return forkJoin(requests).pipe(
+    return this.jokesService.fetchInitialJokes(INITIAL_JOKES_COUNT).pipe(
       tap((batch) => {
         ctx.patchState({
           error: null,

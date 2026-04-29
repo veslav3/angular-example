@@ -25,6 +25,23 @@ Install dependencies:
 pnpm install
 ```
 
+## Nx task orchestration (minimal adoption)
+
+Nx is added on top of the existing Angular CLI setup to provide a task graph and local caching, without changing day-to-day Angular commands.
+
+- Keep using existing defaults:
+  - `pnpm start` (`ng serve`)
+  - `pnpm build` (`ng build`)
+  - `pnpm test` (`ng test`)
+- Use Nx when you want orchestration/graph/caching:
+  - `pnpm nx:start`
+  - `pnpm nx:build`
+  - `pnpm nx:test`
+  - `pnpm exec nx show projects`
+  - `pnpm exec nx graph`
+
+The Angular workspace config remains in `angular.json`; Nx also uses a root `project.json` so Nx targets map cleanly to the same Angular builders.
+
 ## Development server
 
 To start a local development server, run:
