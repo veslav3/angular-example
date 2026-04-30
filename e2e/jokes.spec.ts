@@ -32,6 +32,16 @@ test.describe('Chuck jokes (MSW pool of 10 jokes)', () => {
     await expect(items.nth(9)).toContainText(MOCK_JOKES[9].value);
   });
 
+  test('initial load shows an error when one jokes request fails', async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({ 'x-e2e-fail-at-index': '3' });
+    await page.goto('/');
+    const items = page.getByTestId('joke-item');
+    await expect(items).toHaveCount(0);
+    await expect(page.getByTestId('joke-error')).toContainText(
+      'Could not load jokes. Try reloading the page.'
+    );
+  });
+
   test('each click replaces oldest joke when list is full (FIFO, max 10)', async ({ page }) => {
     await page.goto('/');
     await waitForMswResetRef(page);

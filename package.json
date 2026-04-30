@@ -60,6 +60,9 @@
     "vitest": "^4.0.8"
   },
   "pnpm": {
+    "overrides": {
+      "serialize-javascript": "^7.0.5"
+    },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "esbuild",

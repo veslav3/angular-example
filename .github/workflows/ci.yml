@@ -36,10 +36,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Use `pnpm exec ng …` so CLI flags are not prefixed with an extra `--`
-      # (which breaks `ng test` / `ng build` schema validation under `pnpm run`).
       - name: Run unit tests
-        run: pnpm exec ng test --watch false
+        run: pnpm exec nx test angular-example -- --watch=false
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
@@ -50,4 +48,4 @@ jobs:
           CI: true
 
       - name: Production build
-        run: pnpm exec ng build --configuration production
+        run: pnpm exec nx build angular-example --configuration production

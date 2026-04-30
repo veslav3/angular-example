@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { from, mergeMap, toArray } from 'rxjs';
 
 import { chuckRandomJokeUrl, type ChuckJoke } from './jokes.model';
 
@@ -10,9 +10,12 @@ export class JokesService {
 
   fetchInitialJokes(count: number) {
     // Exactly one GET per slot. Distinct URLs avoid cache reusing one response.
-    const requests = Array.from({ length: count }, (_, i) =>
-      this.http.get<ChuckJoke>(chuckRandomJokeUrl(`${globalThis.crypto?.randomUUID?.() ?? i}-${i}`))
+    const batchNonce = Date.now();
+    return from(Array.from({ length: count }, (_, i) => i)).pipe(
+      mergeMap((i) =>
+        this.http.get<ChuckJoke>(chuckRandomJokeUrl(`${batchNonce}-${i}`))
+      ),
+      toArray()
     );
-    return forkJoin(requests);
   }
 }

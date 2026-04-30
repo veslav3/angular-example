@@ -12,6 +12,7 @@ function isChuckRandomJokeRequest({ request }: { request: Request }): boolean {
 }
 
 const SLOW_HEADER = 'x-e2e-slow-ms';
+const FAIL_AT_INDEX_HEADER = 'x-e2e-fail-at-index';
 
 function parseSlowMs(request: Request): number {
   const raw = request.headers.get(SLOW_HEADER);
@@ -20,6 +21,15 @@ function parseSlowMs(request: Request): number {
   }
   const n = parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function parseFailAtIndex(request: Request): number {
+  const raw = request.headers.get(FAIL_AT_INDEX_HEADER);
+  if (!raw) {
+    return -1;
+  }
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n >= 0 ? n : -1;
 }
 
 /**
@@ -35,8 +45,14 @@ export function createJokeMockHandlers() {
     http.get(isChuckRandomJokeRequest, ({ request }) => {
       const run = queue.then(async () => {
         const slowMs = parseSlowMs(request);
+        const failAtIndex = parseFailAtIndex(request);
         if (slowMs > 0) {
           await new Promise((r) => setTimeout(r, slowMs));
+        }
+        const shouldFail = callIndex === failAtIndex;
+        if (shouldFail) {
+          callIndex += 1;
+          return HttpResponse.json({ message: 'forced e2e failure' }, { status: 500 });
         }
         const joke = MOCK_JOKES[callIndex % MOCK_JOKES.length];
         callIndex += 1;
